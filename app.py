@@ -5,7 +5,7 @@ import os
 
 
 """
-App configuration
+App configurations
 """
 # Init app
 app = Flask(__name__)
@@ -26,9 +26,7 @@ ma = Marshmallow(app)
 """
 Database models
 """
-# Payment Class/Model
-
-
+# Payment Model
 class Payment(db.Model):
     # Say payment with a credit card
     id = db.Column(db.Integer, primary_key=True)
@@ -56,8 +54,6 @@ db.create_all()
 Database schema for the models
 """
 # Payment Schema
-
-
 class PaymentSchema(ma.Schema):
     class Meta:
         fields = ('id', 'username', 'card_number',
@@ -73,8 +69,6 @@ payment_schema = PaymentSchema(many=True)
 API Routes Endpoints
 """
 # Make a payment
-
-
 @app.route('/transactions', methods=['POST'])
 def make_payment():
     username = request.json['username']
@@ -90,8 +84,6 @@ def make_payment():
     return payment_schema.jsonify(new_transaction)
 
 # Get all transactions
-
-
 @app.route('/transactions', methods=['GET'])
 def get_transactions():
     all_transactions = Payment.query.all()
@@ -99,16 +91,12 @@ def get_transactions():
     return jsonify(result)
 
 # Get single payment (Not part of the task)
-
-
 @app.route('/transactions/<id>', methods=['GET'])
 def get_transaction(id):
     transaction = Payment.query.get(id)
     return payment_schema.jsonify(transaction)
 
 # Get payment balance
-
-
 @app.route('/transaction/balance/<id>', methods=['GET'])
 def get_balance(id):
     pass
