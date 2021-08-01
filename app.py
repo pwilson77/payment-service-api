@@ -101,10 +101,14 @@ def get_transaction(id):
 def get_balance(id):
     pass
 
+# Test get request
+@app.route('/test', methods=['GET'])
+def get_test():
+    return "Hello"
 
 """
 Server to run the app
 """
 # Server
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host="0.0.0.0", debug=True)
