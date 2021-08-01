@@ -1,0 +1,14 @@
+click==8.0.1; python_version >= '3.6'
+colorama==0.4.4; platform_system == 'Windows'
+flask-marshmallow==0.14.0
+flask-sqlalchemy==2.5.1
+flask==2.0.1
+greenlet==1.1.0; python_version >= '3'
+itsdangerous==2.0.1; python_version >= '3.6'
+jinja2==3.0.1; python_version >= '3.6'
+markupsafe==2.0.1; python_version >= '3.6'
+marshmallow-sqlalchemy==0.26.1
+marshmallow==3.13.0; python_version >= '3.5'
+six==1.16.0; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
+sqlalchemy==1.4.22; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4, 3.5'
+werkzeug==2.0.1; python_version >= '3.6'
