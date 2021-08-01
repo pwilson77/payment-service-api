@@ -1,8 +1,9 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
+from datetime import datetime
+import requests
 import os
-
 
 """
 App configurations
@@ -30,16 +31,16 @@ Database models
 class Payment(db.Model):
     # Say payment with a credit card
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(100), unique=True)
-    card_number = db.Column(db.Integer)
-    cvv_number = db.Column(db.Integer)
-    expiration_date = db.Column(db.String(5))  # Example 11/21
+    email = db.Column(db.String(100), unique=True)
+    mobile_number = db.Column(db.Integer)
+    amount = db.Column(db.Float)
+    payment_date = db.Column(db.DateTime, nullable=False)  # Example 11/21
 
-    def __init__(self, username, card_number, cvv_number, expiration_date):
-        self.username = username
-        self.card_number = card_number
-        self.cvv_number = cvv_number
-        self.expiration_date = expiration_date
+    def __init__(self, email, mobile_number, amount):
+        self.email = email
+        self.mobile_number = mobile_number
+        self.amount = amount
+        self.payment_date = datetime.now()
 
 
 """
@@ -56,8 +57,8 @@ Database schema for the models
 # Payment Schema
 class PaymentSchema(ma.Schema):
     class Meta:
-        fields = ('id', 'username', 'card_number',
-                  'cvv_number', 'expiration_date')
+        fields = ('id', 'email', 'mobile_number',
+                  'amount', 'payment_date')
 
 
 # Init Schema
@@ -71,13 +72,23 @@ API Routes Endpoints
 # Make a payment
 @app.route('/transactions', methods=['POST'])
 def make_payment():
-    username = request.json['username']
-    card_number = request.json['card_number']
-    cvv_number = request.json['cvv_number']
-    expiration_date = request.json['expiration_date']
+    email = request.json['email']
+    mobile_number = request.json['mobile_number']
+    amount = request.json['amount']
+    access_token = "sk_test_0b1400c14af0802885d23b0b198b2b0c015f74de"
+    my_headers = {'Authorization' : f'Bearer {access_token}'}
+    payment_data = {
+        "amount": amount, 
+        "email": email,
+        "currency": "GHS",
+        "mobile_money": {
+            "phone" : mobile_number,
+            "provider" : "MTN"
+        }
+    }
+    response = requests.post('https://api.paystack.co/charge', headers=my_headers, data = payment_data)
 
-    new_transaction = Payment(username, card_number,
-                              cvv_number, expiration_date)
+    new_transaction = Payment(email, mobile_number, amount )
     db.session.add(new_transaction)
     db.session.commit()
 
