@@ -88,11 +88,12 @@ def make_payment():
     }
     response = requests.post('https://api.paystack.co/charge', headers=my_headers, data = payment_data)
 
-    new_transaction = Payment(email, mobile_number, amount )
-    db.session.add(new_transaction)
-    db.session.commit()
+    return response
+    # new_transaction = Payment(email, mobile_number, amount )
+    # db.session.add(new_transaction)
+    # db.session.commit()
 
-    return payment_schema.jsonify(new_transaction)
+    # return payment_schema.jsonify(new_transaction)
 
 # Get all transactions
 @app.route('/transactions', methods=['GET'])
