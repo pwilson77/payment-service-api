@@ -1,6 +1,8 @@
-from flask import Flask, request, jsonify
+# from dotenv import load_dotenv
+from flask import Flask, json, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
+from sqlalchemy import func
 from datetime import datetime
 import requests
 import os
@@ -29,12 +31,12 @@ Database models
 """
 # Payment Model
 class Payment(db.Model):
-    # Say payment with a credit card
+    # Payment with mobile money (MTN)
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(100), unique=True)
     mobile_number = db.Column(db.Integer)
     amount = db.Column(db.Float)
-    payment_date = db.Column(db.DateTime, nullable=False)  # Example 11/21
+    payment_date = db.Column(db.DateTime, nullable=False)  
 
     def __init__(self, email, mobile_number, amount):
         self.email = email
@@ -75,10 +77,11 @@ def make_payment():
     email = request.json['email']
     mobile_number = request.json['mobile_number']
     amount = request.json['amount']
-    access_token = "sk_test_0b1400c14af0802885d23b0b198b2b0c015f74de"
-    my_headers = {'Authorization' : f'Bearer {access_token}'}
+    access_token = os.environ.get('ACCESS_TOKEN')
+    my_headers = {'Authorization' : f'Bearer {access_token}', 'Content-Type': 'application/json'}
+
     payment_data = {
-        "amount": amount, 
+        "amount": amount * 100,  # amount calculated in pesewas
         "email": email,
         "currency": "GHS",
         "mobile_money": {
@@ -86,14 +89,21 @@ def make_payment():
             "provider" : "MTN"
         }
     }
-    response = requests.post('https://api.paystack.co/charge', headers=my_headers, data = payment_data)
+    response = requests.post('https://api.paystack.co/charge', headers=my_headers, json=payment_data)
 
-    return response
-    # new_transaction = Payment(email, mobile_number, amount )
-    # db.session.add(new_transaction)
-    # db.session.commit()
+    # return (response.text, response.status_code, response.headers.items())
+    # return (response.text)
 
-    # return payment_schema.jsonify(new_transaction)
+    new_transaction = Payment(email, mobile_number, amount)
+    db.session.add(new_transaction)
+    db.session.commit()
+
+    if(response.status_code == 200):
+        return "Payment sucessful, you will receive an invoice in your email!"
+    else:
+        return "Payment Failed"
+    
+
 
 # Get all transactions
 @app.route('/transactions', methods=['GET'])
@@ -102,21 +112,20 @@ def get_transactions():
     result = payment_schema.dump(all_transactions)
     return jsonify(result)
 
+
 # Get single payment (Not part of the task)
 @app.route('/transactions/<id>', methods=['GET'])
 def get_transaction(id):
     transaction = Payment.query.get(id)
     return payment_schema.jsonify(transaction)
 
-# Get payment balance
-@app.route('/transaction/balance/<id>', methods=['GET'])
-def get_balance(id):
-    pass
 
-# Test get request
-@app.route('/test', methods=['GET'])
-def get_test():
-    return "Hello"
+# Get payment balance
+@app.route('/transactions/balance/', methods=['GET'])
+def get_balance():
+    cursor = db.session.query(func.sum(Payment.amount))
+    total_balance = cursor.scalar()
+    return jsonify({'Transaction balance': total_balance})
 
 """
 Server to run the app
